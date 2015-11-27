@@ -1,8 +1,6 @@
 # PSD from CLI
 
-Convert and preview Photoshop files using the CLI.
-
-Powered by NodeJS
+Convert and preview Photoshop files using the CLI
 
 ## Install
 
