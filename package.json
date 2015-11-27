@@ -1,6 +1,6 @@
 {
   "name": "psd-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Convert and preview Photoshop files using the CLI",
   "author": "Simon Tarchichi <kartsims@gmail.com>",
   "bin": {
