@@ -1,0 +1,33 @@
+{
+  "name": "psd-cli",
+  "version": "0.1.0",
+  "description": "CLI utility to manage PSD files",
+  "author": "Simon Tarchichi <kartsims@gmail.com>",
+  "bin": {
+    "psd": "./index.js"
+  },
+  "main": "index.js",
+  "engines": {
+    "node": "5.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kartsims/psd-cli"
+  },
+  "bugs": {
+    "url": "https://github.com/kartsims/psd-cli/issues"
+  },
+  "keywords": [
+    "psd",
+    "photoshop"
+  ],
+  "dependencies": {
+    "async": "1.5.0",
+    "commander": "2.9.0",
+    "file-type": "3.3.0",
+    "psd": "3.1.0"
+  },
+  "devDependencies": {},
+  "preferGlobal": true,
+  "license": "MIT"
+}
