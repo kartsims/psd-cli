@@ -6,6 +6,7 @@ var cp = require('child_process');
 var async = require('async');
 var fileType = require('file-type');
 var readChunk = require('read-chunk');
+var chalk = require('chalk');
 
 var filesProcessed = [];
 
@@ -17,7 +18,6 @@ program
   .action(processFiles)
   .parse(process.argv);
 
-
 // here lies the PSD magic
 function processFiles(files, env) {
   async.each(files, function(file, cb) {
@@ -26,12 +26,12 @@ function processFiles(files, env) {
       var buffer = readChunk.sync(file, 0, 262);
       var type = fileType(buffer).ext;
       if (type!='psd') {
-        console.log(file, "is not a PSD file, type detected :", type);
+        console.log(chalk.red.bold("%s is not a PSD file, type detected : %s"), file, type);
         return cb();
       }
     }
     catch (e) {
-      console.log(file, "could not be opened with PSD library");
+        console.log(chalk.red.bold("%s could not be opened with PSD library"), file);
       return cb();
     }
 
@@ -40,7 +40,7 @@ function processFiles(files, env) {
     PSD.open(file).then(function (psd) {
       return psd.image.saveAsPng(filePng);
     }).then(function (err) {
-      console.log('PNG saved to', filePng);
+      console.log(chalk.gray("PNG saved to %s"), filePng);
       filesProcessed.push(filePng);
       return cb();
     });
@@ -50,14 +50,14 @@ function processFiles(files, env) {
 
 function processDone(err) {
   if (err) {
-    console.log("Error processing the files", err);
+    console.log(chalk.red("Error processing the files"), err);
   }
   
-  console.log("Files processed successfully", filesProcessed);
+  console.log(chalk.green("Files processed successfully :\n- %s"), filesProcessed.join("\n- "));
 
   if (program.open) {
     var commandLine = getCommandLine();
-    console.log('Opening files command :', commandLine);
+    console.log(chalk.gray("Opening files command '%s'"), commandLine);
     cp.spawn(commandLine, filesProcessed, { detached: true })
       .unref();
   }
