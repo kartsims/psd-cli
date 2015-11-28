@@ -1,4 +1,7 @@
+#!/usr/bin/env node
+
 var PSD = require('psd');
+var program = require('commander');
 var cp = require('child_process');
 var async = require('async');
 var fileType = require('file-type');
@@ -7,7 +10,7 @@ var readChunk = require('read-chunk');
 var filesProcessed = [];
 
 // setup Commander program
-require('commander')
+program
   .version(require('./package.json').version)
   .arguments('<file...>')
   .option('-o, --open', 'Preview file after conversion')
