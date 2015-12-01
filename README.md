@@ -2,6 +2,12 @@
 
 Convert and preview Photoshop files using the CLI
 
+## Requirements
+
+This tool has no native dependencies (**no need for ImageMagick or even Photoshop**) thanks to the great work done by the folks of [PSD.js](https://www.npmjs.com/package/psd). Unfortunately, not all image modes and depths are supported *yet*.
+
+You just need to have a recent version of NodeJS installed on your system.
+
 ## Install
 
 ```
