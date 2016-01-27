@@ -12,7 +12,7 @@ var filesProcessed = [];
 
 // setup Commander program
 program
-  .version(require('./package.json').version)
+  .version(require('../package.json').version)
   .arguments('<file...>')
   .option('-o, --open', 'Preview file after conversion')
   .action(processFiles)
@@ -25,21 +25,20 @@ function processFiles(files, env) {
     try {
       var buffer = readChunk.sync(file, 0, 262);
       var type = fileType(buffer).ext;
-      if (type!='psd') {
+      if (type != 'psd') {
         console.log(chalk.red.bold("%s is not a PSD file, type detected : %s"), file, type);
         return cb();
       }
-    }
-    catch (e) {
-        console.log(chalk.red.bold("%s could not be opened with PSD library"), file);
+    } catch (e) {
+      console.log(chalk.red.bold("%s could not be opened with PSD library"), file);
       return cb();
     }
 
     var filePng = file.replace(/\.psd$/, '.png');
 
-    PSD.open(file).then(function (psd) {
+    PSD.open(file).then(function(psd) {
       return psd.image.saveAsPng(filePng);
-    }).then(function (err) {
+    }).then(function(err) {
       console.log(chalk.gray("PNG saved to %s"), filePng);
       filesProcessed.push(filePng);
       return cb();
@@ -52,22 +51,28 @@ function processDone(err) {
   if (err) {
     console.log(chalk.red("Error processing the files"), err);
   }
-  
+
   console.log(chalk.green("Files processed successfully :\n- %s"), filesProcessed.join("\n- "));
 
   if (program.open) {
     var commandLine = getCommandLine();
     console.log(chalk.gray("Opening files command '%s'"), commandLine);
-    cp.spawn(commandLine, filesProcessed, { detached: true })
+    cp.spawn(commandLine, filesProcessed, {
+        detached: true
+      })
       .unref();
   }
 }
 
 function getCommandLine() {
-   switch (process.platform) { 
-      case 'darwin' : return 'open';
-      case 'win32' : return 'start';
-      case 'win64' : return 'start';
-      default : return 'xdg-open';
-   }
+  switch (process.platform) {
+    case 'darwin':
+      return 'open';
+    case 'win32':
+      return 'start';
+    case 'win64':
+      return 'start';
+    default:
+      return 'xdg-open';
+  }
 }
