@@ -13,7 +13,7 @@ var filesProcessed = [];
 
 // setup Commander program
 program
-  .version(require('./package.json').version)
+  .version(require('../package.json').version)
   .arguments('<file...>')
   .option('-c, --convert', 'Convert to PNG file named <FILENAME>.png')
   .option('-t, --text', 'Extract text content to <FILENAME>.txt')
