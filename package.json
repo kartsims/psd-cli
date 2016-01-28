@@ -1,7 +1,7 @@
 {
   "name": "psd-cli",
-  "version": "0.1.3",
-  "description": "Convert and preview Photoshop files using the CLI",
+  "version": "0.2.0",
+  "description": "Convert to PNG and extract text from Photoshop files using the CLI",
   "author": "Simon Tarchichi <kartsims@gmail.com>",
   "bin": {
     "psd": "./bin/psd.js"
