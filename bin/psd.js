@@ -55,6 +55,7 @@ function extractTextFromFile(filepath, psdPromise, cb) {
         fileString += '\n' + t.path.join(' > ');
         fileString += '\n' + '---';
         fileString += '\n\n' + t.text.replace(/\r/g, '\n');
+ fileString += '\n\n' + t.font.replace(/\r/g, '\n');
       });
     });
 
@@ -157,12 +158,17 @@ function PSDLayer(path, element) {
       var text = [];
 
       if (typeof element.text !== 'undefined' && element.text !== undefined) {
+        
         text.push({
           path: self.path,
           text: element.text.value || null,
+          
+          // experimental extract font info
+          font: JSON.stringify(element.text.font) || null
         });
+        
       }
-
+     
       if (typeof(element.children) !== 'undefined') {
         element.children.forEach(function(child) {
           var layer = new PSDLayer(self.path, child);
