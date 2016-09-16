@@ -16,6 +16,7 @@ program
   .version(require('../package.json').version)
   .arguments('<file...>')
   .option('-c, --convert', 'Convert to PNG file named <FILENAME>.png')
+  .option('-l, --layer', 'Convert layer to PNG file named <FILENAME>/<LAYERNAME>.png')
   .option('-t, --text', 'Extract text content to <FILENAME>.txt')
   .option('-o, --open', 'Preview file after conversion (triggers -c option)')
   .action(processFiles)
@@ -37,6 +38,30 @@ function convertFile(filepath, psdPromise, cb) {
     filesProcessed.push(filePng);
     cb(null, filePng);
   });
+}
+
+function extractLayerFromFile(filepath, psdPromise, cb) {
+  	var filedir = filepath.replace(/\.psd$/, '');	
+	var start = new Date(); 	
+        if (!fs.existsSync(filedir)){
+    		fs.mkdirSync(filedir);
+	}
+
+	psdPromise.then(function(psd) {
+	  psd.tree().descendants().forEach(function (node) {
+	    if ( node.isGroup() ) return true;
+            if (typeof node.text !== 'undefined' ) return true;
+            if ( node.visible() ) { 
+	    	node.saveAsPng(filedir+"/" + node.name.replace(/[^a-z0-9]/gi, '_').replace(/(_{2,})/gi, '_')+ ".png").catch(function (err) {
+	     	 console.log(err.stack);
+	    	});
+	    }
+	  });
+	}).then(function () {
+	  console.log("Finished in " + ((new Date()) - start) + "ms");
+	}).catch(function (err) {
+	  console.log(err.stack);
+	});
 }
 
 // extract text from PSD file
@@ -108,6 +133,14 @@ function processFiles(files, env) {
         convertFile(filepath, psdPromise, cb);
       });
     }
+
+    // convert layer to PNG
+    if (program.layer) {
+      asyncTasks.push(function(cb) {
+        extractLayerFromFile(filepath, psdPromise, cb);
+      });
+    }
+
     // extract text data
     if (program.text) {
       asyncTasks.push(function(cb) {
