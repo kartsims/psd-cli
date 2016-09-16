@@ -43,7 +43,9 @@ function convertFile(filepath, psdPromise, cb) {
 function extractTextFromFile(filepath, psdPromise, cb) {
   var fileText = filepath.replace(/\.psd$/, '.txt');
   var fileString = '';
-
+  var summarizeFonts = {};
+  var summarizeFontsColor = {};
+  var summarizeFontsSizes = {};
   psdPromise.then(function(psd) {
 
     psd.tree().export().children.forEach(function(child) {
@@ -55,9 +57,16 @@ function extractTextFromFile(filepath, psdPromise, cb) {
         fileString += '\n' + t.path.join(' > ');
         fileString += '\n' + '---';
         fileString += '\n\n' + t.text.replace(/\r/g, '\n');
- fileString += '\n\n' + t.font.replace(/\r/g, '\n');
+        fileString += '\n\n' + t.fontinfo.replace(/\r/g, '\n');
+        summarizeFonts[t.font.name] = t.font.name;
+        summarizeFontsColor[t.font.colors] = t.font.colors;
+        summarizeFontsSizes[t.font.sizes] = t.font.sizes;
       });
     });
+    fileString += '\n\n' + '===== SUMMARY =====';
+    fileString += '\n' + 'FONTS: '+Object.keys(summarizeFonts).join(", ");
+    fileString += '\n' + 'FONTS COLORS: '+Object.keys(summarizeFontsColor).join(" ");
+    fileString += '\n' + 'FONTS SIZES: '+Object.keys(summarizeFontsSizes).join(" ");
 
     fs.writeFile(fileText, fileString, function(err) {
       if (err) {
@@ -147,11 +156,16 @@ function getCommandLine() {
 }
 
 
+
 function PSDLayer(path, element) {
   this.path = path.slice();
   this.path.push(element.name);
 
   var self = this;
+  var convertPtToPx= function (pt) {
+   var px = pt * 96 / 72;
+   return Math.round((px*100))*0.01;
+  };
 
   return {
     extractText: function() {
@@ -159,12 +173,22 @@ function PSDLayer(path, element) {
 
       if (typeof element.text !== 'undefined' && element.text !== undefined) {
         
+/*
+samples:
+{"name":"Novecentosanswide-Bold","sizes":[12.5,12.5,12.5,12.5],"colors":[[19,62,89,255],[19,62,89,255],[19,62,89,255],[19,62,89,255]],"alignment":["center","center","center","center"]}
+*/
+        var f = element.text.font;
+	font = {};
+        font.name = f.name ;
+	font.sizes = convertPtToPx(f.sizes[0]);
+	font.colors = 'rgba('+f.colors[0].join(', ')+')';
+        font.alignment = f.alignment[0];
+
         text.push({
           path: self.path,
           text: element.text.value || null,
-          
-          // experimental extract font info
-          font: JSON.stringify(element.text.font) || null
+          font: font,
+          fontinfo: JSON.stringify(font) || null
         });
         
       }
