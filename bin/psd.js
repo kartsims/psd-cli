@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 var PSD = require('psd');
+var PNG = require('pngjs').PNG;
 var program = require('commander');
 var cp = require('child_process');
 var async = require('async');
@@ -26,7 +27,23 @@ function convertFile(filepath, psdPromise, cb) {
   var filePng = filepath.replace(/\.psd$/, '.png');
 
   psdPromise.then(function(psd) {
-    return psd.image.saveAsPng(filePng);
+    // prepare a new PNG instance
+    var png = new PNG({
+      filterType: 4,
+      width: psd.header.width,
+      height: psd.header.height
+    })
+    // parse PSD.js's file Buffer
+    png.parse(psd.file.data, function(err, data) {
+      if (err) {
+        console.log(chalk.red.bold('Could not parse PSD data using PNG'))
+      }
+      png.pack()
+        .pipe(fs.createWriteStream(filePng))
+        .on('finish', function() {
+          console.log('DONE')
+        })
+    })
   }).then(function(err) {
     if (err) {
       console.log(chalk.red.bold("Error while saving %s"), filePng);
@@ -76,6 +93,8 @@ function processFiles(files, env) {
   async.eachSeries(files, function(filepath, cb) {
 
     console.log("\nProcessing %s ...", filepath);
+
+    // TODO throw different error if file does not exist
 
     try {
       var buffer = readChunk.sync(filepath, 0, 262);

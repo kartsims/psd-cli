@@ -26,6 +26,7 @@
     "chalk": "1.1.1",
     "commander": "2.9.0",
     "file-type": "3.3.0",
+    "pngjs": "^3.0.1",
     "psd": "3.1.0",
     "read-chunk": "1.0.1"
   },
