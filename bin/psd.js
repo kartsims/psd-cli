@@ -51,6 +51,9 @@ function extractTextFromFile(filepath, psdPromise, cb) {
       var text = layer.extractText();
 
       text.forEach(function(t) {
+        if (typeof t.text !== 'string') {
+          return;
+        }
         fileString += '\n\n' + '---';
         fileString += '\n' + t.path.join(' > ');
         fileString += '\n' + '---';
