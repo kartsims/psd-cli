@@ -10,8 +10,10 @@ var chalk = require('chalk');
 var fs = require('fs');
 var Path = require('path');
 var filenamify = require('filenamify');
+var mkdirp = require('mkdirp');
 
 var filesProcessed = [];
+var outputDir = null;
 
 // setup Commander program
 program
@@ -21,12 +23,17 @@ program
   .option('-l, --layers', 'Convert layers to PNG files named <LAYER-NAME>.png')
   .option('-t, --text', 'Extract text content to <FILENAME>.txt')
   .option('-o, --open', 'Preview file after conversion (triggers -c option)')
+  .option('-d, --dir <DIR>', 'Write output file(s) to <DIR>')
   .action(processFiles)
   .parse(process.argv);
 
 // save PNG
 function convertFile(filepath, psdPromise, cb) {
   var filePng = filepath.replace(/\.psd$/, '.png');
+
+  if (outputDir) {
+    filePng = Path.join(outputDir, Path.basename(filePng));
+  }
 
   psdPromise.then(function(psd) {
     return psd.image.saveAsPng(filePng);
@@ -44,7 +51,11 @@ function convertFile(filepath, psdPromise, cb) {
 
 // save layers to PNG
 function convertLayers(filepath, psdPromise, cb) {
-  var fileDir = Path.dirname(filepath)
+  var fileDir = Path.dirname(filepath);
+
+  if (outputDir) {
+    fileDir = outputDir;
+  }
 
   try {
     psdPromise.then(function(psd) {
@@ -66,6 +77,10 @@ function convertLayers(filepath, psdPromise, cb) {
 function extractTextFromFile(filepath, psdPromise, cb) {
   var fileText = filepath.replace(/\.psd$/, '.txt');
   var fileString = '';
+
+  if (outputDir) {
+    fileText = Path.join(outputDir, Path.basename(fileText));
+  }
 
   psdPromise.then(function(psd) {
 
@@ -135,8 +150,40 @@ function processFiles(files, env) {
         extractTextFromFile(filepath, psdPromise, cb);
       });
     }
+    // set output directory
+    if (program.dir) {
+      outputDir = Path.resolve(program.dir);
+    }
 
-    async.series(asyncTasks, cb);
+    if (program.dir) {
+      // check that directory exists and is a directory
+      try {
+        if (fs.statSync(outputDir).isDirectory()) {
+          async.series(asyncTasks, cb);
+        } else {
+          console.log(chalk.red.bold('%s is not a directory'), outputDir);
+          return cb();
+        }
+      } catch (err) {
+        if (err.code === 'ENOENT') {
+          // make directory
+          mkdirp(outputDir, function(error) {
+            if (error) {
+              console.log(chalk.red.bold('Error while creating %s'), outputDir);
+              return cb();
+            }
+
+            console.log(chalk.gray('Created directory %s'), outputDir);
+            async.series(asyncTasks, cb);
+          });
+        } else {
+          console.log(chalk.red.bold('Error accessing %s'), outputDir);
+          return cb();
+        }
+      }
+    } else {
+      async.series(asyncTasks, cb);
+    }
 
   }, processDone);
 }

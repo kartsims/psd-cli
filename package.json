@@ -28,7 +28,8 @@
     "file-type": "3.3.0",
     "psd": "3.1.0",
     "read-chunk": "1.0.1",
-    "filenamify": "2.1.0"
+    "filenamify": "2.1.0",
+    "mkdirp": "0.5.1"
   },
   "devDependencies": {},
   "preferGlobal": true,
