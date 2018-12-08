@@ -8,6 +8,8 @@ var fileType = require('file-type');
 var readChunk = require('read-chunk');
 var chalk = require('chalk');
 var fs = require('fs');
+var Path = require('path');
+var filenamify = require('filenamify');
 
 var filesProcessed = [];
 
@@ -16,6 +18,7 @@ program
   .version(require('../package.json').version)
   .arguments('<file...>')
   .option('-c, --convert', 'Convert to PNG file named <FILENAME>.png')
+  .option('-l, --layers', 'Convert layers to PNG files named <LAYER-NAME>.png')
   .option('-t, --text', 'Extract text content to <FILENAME>.txt')
   .option('-o, --open', 'Preview file after conversion (triggers -c option)')
   .action(processFiles)
@@ -37,6 +40,26 @@ function convertFile(filepath, psdPromise, cb) {
     filesProcessed.push(filePng);
     cb(null, filePng);
   });
+}
+
+// save layers to PNG
+function convertLayers(filepath, psdPromise, cb) {
+  var fileDir = Path.dirname(filepath)
+
+  try {
+    psdPromise.then(function(psd) {
+      psd.tree().descendants().forEach(function(node) {
+        saveLayer(node, fileDir, cb);
+      });
+    });
+  } catch (err) {
+    console.log(
+      chalk.red.bold('Error while extracting layers from %s'), filepath);
+      return cb(err);
+  }
+
+  filesProcessed.push(filepath);
+  cb(null, filepath);
 }
 
 // extract text from PSD file
@@ -99,6 +122,11 @@ function processFiles(files, env) {
     if (program.convert || program.open) {
       asyncTasks.push(function(cb) {
         convertFile(filepath, psdPromise, cb);
+      });
+    }
+    if (program.layers) {
+      asyncTasks.push(function(cb) {
+        convertLayers(filepath, psdPromise, cb);
       });
     }
     // extract text data
@@ -178,5 +206,24 @@ function PSDLayer(path, element) {
 
       return text;
     }
+  }
+}
+
+function saveLayer(node, fileDir, cb) {
+
+  if (node && node.hasChildren()) {
+    node.children().forEach(function(child) {
+      saveLayer(child, fileDir, cb);
+    });
+  } else if (node) {
+    var filepath = Path.join(
+      fileDir, filenamify(node.layer.name, {replacement: '-'}) + '.png');
+    node.layer.image.saveAsPng(filepath).then(function(err) {
+      if (err) {
+        console.log(chalk.red.bold("Error while saving %s"), filepath);
+      }
+
+      console.log(chalk.gray("PNG saved to %s"), filepath);
+    });
   }
 }
