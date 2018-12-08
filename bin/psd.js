@@ -17,6 +17,7 @@ program
   .arguments('<file...>')
   .option('-c, --convert', 'Convert to PNG file named <FILENAME>.png')
   .option('-t, --text', 'Extract text content to <FILENAME>.txt')
+  .option('-f, --font', 'Extract font information to <FILENAME>.txt (triggers -t option)')
   .option('-o, --open', 'Preview file after conversion (triggers -c option)')
   .action(processFiles)
   .parse(process.argv);
@@ -40,7 +41,7 @@ function convertFile(filepath, psdPromise, cb) {
 }
 
 // extract text from PSD file
-function extractTextFromFile(filepath, psdPromise, cb) {
+function extractTextFromFile(filepath, psdPromise, cb, includeFont) {
   var fileText = filepath.replace(/\.psd$/, '.txt');
   var fileString = '';
 
@@ -56,6 +57,13 @@ function extractTextFromFile(filepath, psdPromise, cb) {
         }
         fileString += '\n\n' + '---';
         fileString += '\n' + t.path.join(' > ');
+        if (includeFont) {
+          fileString += '\n\nFont Family: ' + t.font.family;
+          fileString += '\nFont Sizes: ' + t.font.sizes.map(function(size) {
+            return size + 'px';
+          }).join(', ');
+          fileString += '\nFont Colors: ' + t.font.colors.join(', ');
+        }
         fileString += '\n' + '---';
         fileString += '\n\n' + t.text.replace(/\r/g, '\n');
       });
@@ -102,9 +110,9 @@ function processFiles(files, env) {
       });
     }
     // extract text data
-    if (program.text) {
+    if (program.text || program.font) {
       asyncTasks.push(function(cb) {
-        extractTextFromFile(filepath, psdPromise, cb);
+        extractTextFromFile(filepath, psdPromise, cb, program.font);
       });
     }
 
@@ -160,7 +168,25 @@ function PSDLayer(path, element) {
       var text = [];
 
       if (typeof element.text !== 'undefined' && element.text !== undefined) {
+
+        var colors = element.text.font.colors;
+
+        for (var i = 0; i < colors.length; i++) {
+          for (var j = 0; j < colors[i].length; j++) {
+            colors[i][j] = Number(colors[i][j]).toString(16);
+            if (colors[i][j].length < 2) {
+              colors[i][j] = '0' + colors[i][j];
+            }
+          }
+          colors[i] = '#' + colors[i].join('');
+        }
+
         text.push({
+          font: {
+            colors: colors,
+            family: element.text.font.name || null,
+            sizes: element.text.font.sizes,
+          },
           path: self.path,
           text: element.text.value || null,
         });
