@@ -1,15 +1,12 @@
 {
   "name": "psd-cli",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Convert to PNG and extract text from Photoshop files using the CLI",
   "author": "Simon Tarchichi <kartsims@gmail.com>",
   "bin": {
     "psd": "./bin/psd.js"
   },
   "main": "index.js",
-  "engines": {
-    "node": "5.0.0"
-  },
   "repository": {
     "type": "git",
     "url": "https://github.com/kartsims/psd-cli"
@@ -26,7 +23,7 @@
     "chalk": "1.1.1",
     "commander": "2.9.0",
     "file-type": "3.3.0",
-    "psd": "3.1.0",
+    "psd": "3.2.0",
     "read-chunk": "1.0.1"
   },
   "devDependencies": {},
