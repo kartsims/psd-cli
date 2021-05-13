@@ -9,9 +9,13 @@ This tool has no native dependencies (**no need for ImageMagick or even Photosho
 You just need to have a recent version of NodeJS installed on your system.
 
 ## Install
-
+npm
 ```
 npm install -g psd-cli
+```
+yarn
+```
+yarn add global psd-cli
 ```
 
 ## Usage
